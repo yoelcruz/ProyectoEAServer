@@ -1,0 +1,16 @@
+{
+  "watch": [
+    "routes",
+    "interfaces",
+    "assets",
+    "classes",
+    "middlewares",
+    "models",
+    "uploads"
+  ],
+  "ext": "ts",
+  "ignore": [
+    "src/public"
+  ],
+  "exec": "ts-node index.ts dev"
+}
