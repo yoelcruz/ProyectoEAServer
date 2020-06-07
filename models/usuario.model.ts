@@ -21,7 +21,11 @@ const usuarioSchema = new Schema({
     password: {
         type: String,
         required: [ true, 'La contraseña es necesaria']
+    },
+    firebase: {
+        type: String
     }
+
 
 });
 
@@ -39,6 +43,7 @@ interface IUsuario extends Document {
     email: string;
     password: string;
     avatar: string;
+    firebase: string;
     
     compararPassword(password: string): boolean;
 }
