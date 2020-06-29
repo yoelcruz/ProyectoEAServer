@@ -53,22 +53,30 @@ type SalaUsuario = {
     sala: string;
 }
 
+type ChatMessage = {
+    nombre: string;
+    mensaje: string;
+    sala: string;
+}
+
 io.on('connection', (client) => {
     console.log('connection');
 
     client.on('entrarChat', (data: SalaUsuario) => {
 
-        client.join(data.sala);
-        console.log('data.sala', data.sala);
+        client.join(data.sala, () => {
+            console.log('data.sala:', data.sala);
 
-        UserManager.agregarPersona(client.id, data.nombre, data.sala);
-
-        client.broadcast.to(data.sala).emit('listaPersona', UserManager.getPersonasPorSala(data.sala));
-        client.broadcast.to(data.sala).emit('crearMensaje', MessageManager.crearMensaje('Administrador', `${ data.nombre } se unió`));
-
-        /* console.log('entrar chat', data);
-        let lista = [{name: 'Yoel'}, {name: 'Antonia'}, {name: 'Juan'}];
-        client.emit('listaPersonas', lista); */
+            UserManager.agregarPersona(client.id, data.nombre, data.sala);
+            
+            //client.broadcast.to(data.sala).emit('listaPersona', UserManager.getPersonasPorSala(data.sala));
+                // sending to all clients in 'game' room, including sender
+            io.in(data.sala).emit('listaPersona', UserManager.getPersonasPorSala(data.sala));
+            
+            client.broadcast.to(data.sala).emit('crearMensaje', MessageManager.crearMensaje('Administrador', `${ data.nombre } se unió`));
+                       
+        });
+        
     });
 
     client.on('salirChat', (data: SalaUsuario) => { 
@@ -76,6 +84,18 @@ io.on('connection', (client) => {
 
         client.broadcast.to(personaBorrada.sala).emit('crearMensaje', MessageManager.crearMensaje('Administrador', `${ personaBorrada.nombre } salió`));
         client.broadcast.to(personaBorrada.sala).emit('listaPersona', UserManager.getPersonasPorSala(personaBorrada.sala)); 
+        client.leave(personaBorrada.sala);
+    });
+
+    client.on('crearMensaje', (data: ChatMessage) => {
+
+        console.log("Nombre y mensaje de usuario a todos los usuarios del chat", data);
+
+        let persona = UserManager.getPersona(client.id);
+
+        let mensaje = MessageManager.crearMensaje(persona.nombre, data.mensaje);
+        client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
+
     });
 
     client.on('disconnect', () => {

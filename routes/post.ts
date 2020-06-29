@@ -34,7 +34,7 @@ postRoutes.get('/', async (req: any, res: Response) => {
 
 });
 
-// Añadir usuarios al POST
+// Añadir usuario al POST
 postRoutes.post('/:postId/addUser', [ verificaToken ], async(req: any, res: Response) => {
 
     const postId: string= req.params.postId;
@@ -51,6 +51,34 @@ postRoutes.post('/:postId/addUser', [ verificaToken ], async(req: any, res: Resp
 
         if(!postDB.usuarios.includes(userId)){
             postDB.usuarios.push(userId);
+            await postDB.save();
+        }
+
+        res.json({
+            ok: true,
+            post: postDB
+        });            
+    });
+});
+
+// Eliminar usuario al POST
+postRoutes.post('/:postId/deleteUser', [ verificaToken ], async(req: any, res: Response) => {
+
+    const postId: string= req.params.postId;
+    const userId: string= req.usuario._id;
+    
+
+    Post.findById(postId).then( async postDB => {
+        if(!postDB){
+            return res.status(400).json({
+                ok: false,
+                mensaje: 'No se ha encontrado ningún post'
+            });
+        }
+
+        if( postDB.usuarios.includes(userId)){
+            const index = postDB.usuarios.indexOf(userId)
+            postDB.usuarios.splice(index,1);
             await postDB.save();
         }
 
